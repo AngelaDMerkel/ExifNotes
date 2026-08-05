@@ -33,6 +33,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import java.text.Normalizer
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.log2
 
 @Singleton
 class ExifToolCommandsBuilder @Inject constructor(@ApplicationContext context: Context) {
@@ -57,7 +58,7 @@ class ExifToolCommandsBuilder @Inject constructor(@ApplicationContext context: C
         private const val fNumberTag = "-FNumber="
         private const val commentTag = "-UserComment="
         private const val imageDescriptionTag = "-ImageDescription="
-        private const val exposureCompTag = "-ExposureCompensation="
+        private const val exposureBiasTag = "-ExposureCompensation="
         private const val focalLengthTag = "-FocalLength="
         private const val focalLengthIn35mmFormatTag = "-FocalLengthIn35mmFormat="
         private const val isoTag = "-ISO="
@@ -126,17 +127,18 @@ class ExifToolCommandsBuilder @Inject constructor(@ApplicationContext context: C
                 .replace("-", ":")).append(quote).append(space)
 
             //ShutterSpeedValue & ExposureTime
-            val shutter = frame.shutter
-            if (shutter != null) {
-                stringBuilder.append(shutterTag).append(quote).append(shutter
-                    .replace("\"", "")).append(quote).append(space)
-                stringBuilder.append(exposureTimeTag).append(quote).append(shutter
-                    .replace("\"", "")).append(quote).append(space)
+            val exposureTime = frame.shutter?.toDecimalOrNull()
+            if (exposureTime != null) {
+                stringBuilder.append(shutterTag).append(quote).append(shutterSpeedValue(exposureTime))
+                    .append(quote).append(space)
+                stringBuilder.append(exposureTimeTag).append(quote).append(exposureTime)
+                    .append(quote).append(space)
             }
             //ApertureValue & FNumber
             val aperture = frame.effectiveAperture
             if (aperture != null) {
-                stringBuilder.append(apertureTag).append(quote).append(aperture).append(quote).append(space)
+                stringBuilder.append(apertureTag).append(quote).append(apertureValue(aperture))
+                    .append(quote).append(space)
                 stringBuilder.append(fNumberTag).append(quote).append(aperture).append(quote).append(space)
             }
             //UserComment & ImageDescription
@@ -158,10 +160,11 @@ class ExifToolCommandsBuilder @Inject constructor(@ApplicationContext context: C
             if (location?.exifToolLocation != null) {
                 stringBuilder.append(location.exifToolLocation)
             }
-            //ExposureCompensation
-            val exposureComp = frame.exposureComp
-            if (exposureComp != null) stringBuilder.append(exposureCompTag)
-                .append(quote).append(exposureComp).append(quote).append(space)
+            //ExposureBiasValue (called ExposureCompensation by ExifTool)
+            frame.exposureComp?.toDecimalOrNull()?.let { exposureBias ->
+                stringBuilder.append(exposureBiasTag).append(quote).append(exposureBias)
+                    .append(quote).append(space)
+            }
             //FocalLength
             val focalLength = frame.effectiveFocalLength
             if (focalLength > 0) {
@@ -210,4 +213,20 @@ class ExifToolCommandsBuilder @Inject constructor(@ApplicationContext context: C
         }
         return stringBuilder.toString()
     }
+}
+
+internal fun apertureValue(fNumber: Double) = 2 * log2(fNumber)
+
+internal fun shutterSpeedValue(exposureTime: Double) = -log2(exposureTime)
+
+internal fun String.toDecimalOrNull(): Double? {
+    val values = trimStart('+', '-').removeSuffix("\"").split(' ')
+    val result = values.sumOf { value ->
+        val fraction = value.split('/')
+        val numerator = fraction.first().toDoubleOrNull() ?: return null
+        val denominator = fraction.getOrNull(1)?.toDoubleOrNull() ?: 1.0
+        if (denominator == 0.0) return null
+        numerator / denominator
+    }
+    return if (startsWith('-')) -result else result
 }
