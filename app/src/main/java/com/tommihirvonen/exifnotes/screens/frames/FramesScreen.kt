@@ -74,11 +74,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.tommihirvonen.exifnotes.R
 import com.tommihirvonen.exifnotes.core.entities.Camera
+import com.tommihirvonen.exifnotes.core.entities.Filter
 import com.tommihirvonen.exifnotes.core.entities.Frame
 import com.tommihirvonen.exifnotes.core.entities.FrameSortMode
 import com.tommihirvonen.exifnotes.core.entities.Lens
 import com.tommihirvonen.exifnotes.core.entities.LightSource
 import com.tommihirvonen.exifnotes.core.entities.Roll
+import com.tommihirvonen.exifnotes.core.entities.accessories
 import com.tommihirvonen.exifnotes.core.entities.withDate
 import com.tommihirvonen.exifnotes.core.localDateTimeOrNull
 import com.tommihirvonen.exifnotes.di.export.RollExportOptionData
@@ -440,7 +442,7 @@ fun FramesScreen(
     }
     if (showFiltersDialog) {
         val items = remember {
-            framesViewModel.filters.associateWith { false }
+            framesViewModel.filters.filterNot(Filter::isAccessory).associateWith { false }
         }
         MultiChoiceDialog(
             initialItems = items,
@@ -450,7 +452,7 @@ fun FramesScreen(
             onConfirm = { filters ->
                 showFiltersDialog = false
                 selectedFrames.value.forEach { frame ->
-                    framesViewModel.submitFrame(frame.copy(filters = filters))
+                    framesViewModel.submitFrame(frame.copy(filters = frame.accessories + filters))
                 }
             }
         )
