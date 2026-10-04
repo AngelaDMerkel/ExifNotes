@@ -69,6 +69,7 @@ class FilterViewModel @AssistedInject constructor (
     }
 
     fun setType(value: AttachmentType) {
+        if (value == _filter.value.type) return
         val factor = when (value) {
             AttachmentType.Teleconverter -> 1.4
             AttachmentType.FocalReducer -> 0.71
