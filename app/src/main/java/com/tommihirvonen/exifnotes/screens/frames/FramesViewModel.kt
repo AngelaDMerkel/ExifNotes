@@ -157,8 +157,8 @@ class FramesViewModel @AssistedInject constructor(
                 return@launch
             }
             updatedFrames.forEach { requestedFrame ->
-                // Do not overwrite a frame that was edited or deleted during the request.
-                framesList.firstOrNull { it == requestedFrame }?.let {
+                // Apply the zone to the latest frame only if its location still matches.
+                framesList.firstOrNull { it.id == requestedFrame.id && it.location == location }?.let {
                     submitFrame(it.withTimeZone(zoneId))
                 }
             }
