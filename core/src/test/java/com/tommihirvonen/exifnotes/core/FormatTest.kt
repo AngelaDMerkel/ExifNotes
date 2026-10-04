@@ -9,31 +9,32 @@ class FormatTest {
 
     @Test
     fun focalLengthIn35mmFormat_returnsSameFocalLengthFor35mm() {
-        assertEquals(50, Format.MM35.focalLengthIn35mmFormat(50))
+        assertEquals(50, Format.MM35.focalLengthIn35mmFormat(50.0))
     }
 
     @Test
     fun focalLengthIn35mmFormat_convertsKnownMediumFormats() {
-        assertEquals(50, Format.MediumFormat645.focalLengthIn35mmFormat(80))
-        assertEquals(44, Format.MediumFormat66.focalLengthIn35mmFormat(80))
-        assertEquals(39, Format.MediumFormat67.focalLengthIn35mmFormat(80))
-        assertEquals(34, Format.MediumFormat69.focalLengthIn35mmFormat(80))
-        assertEquals(28, Format.MediumFormat612.focalLengthIn35mmFormat(80))
-        assertEquals(20, Format.MediumFormat617.focalLengthIn35mmFormat(80))
+        assertEquals(50, Format.MediumFormat645.focalLengthIn35mmFormat(80.0))
+        assertEquals(44, Format.MediumFormat66.focalLengthIn35mmFormat(80.0))
+        assertEquals(19, Format.MediumFormat66.focalLengthIn35mmFormat(35.5))
+        assertEquals(39, Format.MediumFormat67.focalLengthIn35mmFormat(80.0))
+        assertEquals(34, Format.MediumFormat69.focalLengthIn35mmFormat(80.0))
+        assertEquals(28, Format.MediumFormat612.focalLengthIn35mmFormat(80.0))
+        assertEquals(20, Format.MediumFormat617.focalLengthIn35mmFormat(80.0))
     }
 
     @Test
     fun focalLengthIn35mmFormat_convertsPanoramicAndSheetFormats() {
-        assertEquals(28, Format.XPan.focalLengthIn35mmFormat(45))
-        assertEquals(42, Format.Sheet4x5.focalLengthIn35mmFormat(150))
-        assertEquals(41, Format.Sheet8x10.focalLengthIn35mmFormat(300))
+        assertEquals(28, Format.XPan.focalLengthIn35mmFormat(45.0))
+        assertEquals(42, Format.Sheet4x5.focalLengthIn35mmFormat(150.0))
+        assertEquals(41, Format.Sheet8x10.focalLengthIn35mmFormat(300.0))
     }
 
     @Test
     fun focalLengthIn35mmFormat_returnsNullWithoutEnoughInformation() {
-        assertNull(Format.MediumFormat120.focalLengthIn35mmFormat(80))
-        assertNull(Format.Sheet.focalLengthIn35mmFormat(80))
-        assertNull(Format.MM35.focalLengthIn35mmFormat(0))
+        assertNull(Format.MediumFormat120.focalLengthIn35mmFormat(80.0))
+        assertNull(Format.Sheet.focalLengthIn35mmFormat(80.0))
+        assertNull(Format.MM35.focalLengthIn35mmFormat(0.0))
     }
 
     @Test

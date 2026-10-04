@@ -52,8 +52,8 @@ enum class Format(
             entries.firstOrNull { it.ordinal == value } ?: MM35
     }
 
-    fun focalLengthIn35mmFormat(focalLength: Int): Int? {
-        if (focalLength <= 0) return null
+    fun focalLengthIn35mmFormat(focalLength: Double): Int? {
+        if (!focalLength.isFinite() || focalLength <= 0) return null
         val width = frameWidthMm ?: return null
         val height = frameHeightMm ?: return null
         return (focalLength * mm35Diagonal / hypot(width, height)).roundToInt()

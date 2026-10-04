@@ -79,11 +79,16 @@ class FrameTest {
 
         assertEquals(listOf(filter), frame.opticalFilters)
         assertEquals(listOf(teleconverter, focalReducer, extensionTube), frame.accessories)
-        assertEquals(200, frame.copy(filters = listOf(teleconverter)).effectiveFocalLength)
+        assertEquals(200.0, frame.copy(filters = listOf(teleconverter)).effectiveFocalLength, 0.000001)
         assertEquals(5.6, frame.copy(filters = listOf(teleconverter)).effectiveAperture)
-        assertEquals(50, frame.copy(filters = listOf(focalReducer)).effectiveFocalLength)
+        assertEquals(50.0, frame.copy(filters = listOf(focalReducer)).effectiveFocalLength, 0.000001)
         assertEquals(1.4, frame.copy(filters = listOf(focalReducer)).effectiveAperture)
-        assertEquals(100, frame.effectiveFocalLength)
+        assertEquals(100.0, frame.effectiveFocalLength, 0.000001)
+        assertEquals(
+            35.5,
+            frame.copy(focalLength = 50, filters = listOf(focalReducer.copy(factor = 0.71))).effectiveFocalLength,
+            0.000001
+        )
         assertEquals(3.5, frame.effectiveAperture)
         assertEquals(
             "105mm f/2.8 + Nikon TC-20E + Metabones Speed Booster + Nikon PK-13",

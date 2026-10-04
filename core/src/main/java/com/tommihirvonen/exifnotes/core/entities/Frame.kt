@@ -30,7 +30,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import java.time.LocalDateTime
-import kotlin.math.roundToInt
 
 @OptIn(ExperimentalSerializationApi::class)
 @Parcelize
@@ -80,9 +79,9 @@ private val Frame.converterFactor: Double get() = accessories.fold(1.0) { value,
     }
 }
 
-val Frame.effectiveFocalLength: Int get() {
-    if (focalLength <= 0) return focalLength
-    return (focalLength * converterFactor).roundToInt()
+val Frame.effectiveFocalLength: Double get() {
+    if (focalLength <= 0) return focalLength.toDouble()
+    return focalLength * converterFactor
 }
 
 val Frame.effectiveAperture: Double? get() {
