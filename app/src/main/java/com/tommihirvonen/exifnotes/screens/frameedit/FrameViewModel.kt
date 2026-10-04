@@ -76,7 +76,7 @@ class FrameViewModel @AssistedInject constructor(
     @Assisted("frameCount") frameCount: Int,
     @Assisted estimateDate: Boolean,
     private val application: Application,
-    frameRepository: FrameRepository,
+    private val frameRepository: FrameRepository,
     rollRepository: RollRepository,
     private val lensRepository: LensRepository,
     private val cameraRepository: CameraRepository,
@@ -109,6 +109,8 @@ class FrameViewModel @AssistedInject constructor(
     private val _isResolvingFormattedAddress = MutableStateFlow(false)
     private val _isResolvingTimeZone = MutableStateFlow(false)
     private var timeZoneJob: Job? = null
+    private var timeZoneResolved = false
+    private val existingFrame = frameRepository.getFrame(frameId)
     private val _pictureBitmap = MutableStateFlow<Bitmap?>(null)
     private val _pictureRotation = MutableStateFlow(0f)
     private val _snackbarMessage = MutableStateFlow(SnackbarMessage())
@@ -116,7 +118,6 @@ class FrameViewModel @AssistedInject constructor(
     private var placeholderPictureFilename: String? = null
 
     init {
-        val existingFrame = frameRepository.getFrame(frameId)
         val frame = if (existingFrame != null) {
             existingFrame.pictureFilename?.let {
                 val exists = complementaryPicturesManager
@@ -318,6 +319,7 @@ class FrameViewModel @AssistedInject constructor(
             formattedAddress = formattedAddress
         )
         if (locationChanged) {
+            timeZoneResolved = false
             timeZoneJob?.cancel()
             _isResolvingTimeZone.value = false
             // Keep the known time zone until a replacement is resolved.
@@ -337,6 +339,7 @@ class FrameViewModel @AssistedInject constructor(
                 previousFrame.timeZoneId == zoneId && previousFrame.date == current.date
             }
             if (zoneId != null) {
+                timeZoneResolved = true
                 _frame.value = current.copy(timeZoneId = zoneId, utcOffsetSeconds = preferredOffset)
                     .withTimeZone(zoneId)
             }
@@ -350,6 +353,21 @@ class FrameViewModel @AssistedInject constructor(
     }
 
     fun validate(): Boolean = !_isResolvingTimeZone.value
+
+    fun frameForSave(): Frame {
+        val frame = _frame.value
+        if (timeZoneResolved || existingFrame == null || frame.location != existingFrame.location) {
+            return frame
+        }
+        val saved = frameRepository.getFrame(frame.id) ?: return frame
+        if (saved.location != frame.location ||
+            (saved.timeZoneId == existingFrame.timeZoneId &&
+                saved.utcOffsetSeconds == existingFrame.utcOffsetSeconds)) {
+            return frame
+        }
+        return frame.copy(timeZoneId = saved.timeZoneId, utcOffsetSeconds = saved.utcOffsetSeconds)
+            .withDate(frame.date)
+    }
 
     fun clearComplementaryPicture() {
         _frame.value = _frame.value.copy(pictureFilename = null, pictureFileExists = false)

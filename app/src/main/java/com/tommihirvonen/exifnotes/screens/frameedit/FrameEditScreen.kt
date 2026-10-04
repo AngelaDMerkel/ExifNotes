@@ -234,7 +234,7 @@ private fun FrameEditScreen(
         onAddLens = onAddLens,
         onSubmit = {
             if (frameViewModel.validate()) {
-                onSubmit(frameViewModel.frame.value)
+                onSubmit(frameViewModel.frameForSave())
             }
         },
         snackbarMessage = snackbarMessage.value
